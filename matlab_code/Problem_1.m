@@ -52,11 +52,6 @@ function [] = Problem_1()
     % Solve our three equations (for F, g, and theta) iteratively.
     %%%
     
-    % Containers for previous iterations' values to determine convergence.
-     Fprev = 0;
-     gprev = 0;
-    thprev = 0;
-    
     % Loop through Prandtl numbers.
     for iPr = 1:nPr
         
@@ -66,19 +61,21 @@ function [] = Problem_1()
         while norm < epsilon
             
             iteration = iteration + 1;
-             Fprev =  F(iPr,:);
-             gprev =  g(iPr,:);
-            thprev = th(iPr,:);
+            
+            % Containers for previous iterations' values to determine convergence.
+             F_prev =  F(iPr,:);
+             g_prev =  g(iPr,:);
+            th_prev = th(iPr,:);
     
             % STEP 1: Solve the g-equation.
             
-            [sub, diag, sup, rhs] = Assemble_g( h, Pr(iPr), F(iPr,:), g(iPr,:), th(iPr,:) );
-            g(iPr,:) = Thomas(sub, diag, sup, rhs);
+            [a, b, c, rhs] = Assemble_g( h, BC, F(iPr,:), g(iPr,:), th(iPr,:) );
+            g(iPr,:) = Thomas(a, b, c, rhs);
 
             % STEP 2: Solve the theta-equation.
 
-            [sub, diag, sup, rhs] = Assemble_th( h, Pr(iPr), F(iPr,:) );
-            th(iPr,:) = Thomas(sub, diag, sup, rhs);
+            [a, b, c, rhs] = Assemble_th( h, BC, Pr(iPr), F(iPr,:) );
+            th(iPr,:) = Thomas(a, b, c, rhs);
 
             % STEP 3: Integrate g to obtain F using the Euler method.
 
@@ -86,11 +83,11 @@ function [] = Problem_1()
             
             % STEP 4: Assess convergence.
 
-             Fnorm = sum( Fprev -  F(iPR,:)) / N;
-             gnorm = sum( gprev -  g(iPR,:)) / N;
-            thnorm = sum(thprev - th(iPR,:)) / N;
+             F_norm = sum( F_prev -  F(iPR,:)) / N;
+             g_norm = sum( g_prev -  g(iPR,:)) / N;
+            th_norm = sum(th_prev - th(iPR,:)) / N;
 
-            norm = Fnorm + gnorm + thnorm;
+            norm = F_norm + g_norm + th_norm;
 
             fprintf('Iteration: %02i,  norm: %10.2e', iteration, norm);
         
@@ -100,7 +97,7 @@ function [] = Problem_1()
     
 end
 
-function [a, b, c, rhs] = Assemble_g( h, Pr, F, g, th )
+function [a, b, c, rhs] = Assemble_g( h, BC, F, g, th )
 
     %%%%%%
     % Assembles the LHS matrix and the RHS vector for the g-system.
@@ -111,13 +108,23 @@ function [a, b, c, rhs] = Assemble_g( h, Pr, F, g, th )
     %%%
     
     N = length(F);
-    a = zeros(N-2);
-    b = zeros(N-2);
-    c = zeros(N-2);
+    
+    a_range = 2:N-2;
+    b_range = 2:N-1;
+    c_range = 3:N-1;
+    
+    a = ( 1/h^2) - 3 *  F(a_range) / (2*h);
+    b = (-2/h^2) - 2 *  g(b_range);
+    c = ( 1/h^2) + 3 *  F(c_range) / (2*h);
+    rhs =        - 1 * th(b_range);
+    
+    % Account for boundary conditions, even though g0 = gf = 0.
+    rhs(1)   = rhs(1)   - ((1/h^2) - 3 * F(b_range(1))   / (2*h)) * BC.g0;
+    rhs(end) = rhs(end) - ((1/h^2) + 3 * F(b_range(end)) / (2*h)) * BC.gf;
 
 end
 
-function [a, b, c, rhs] = Assemble_th( h, Pr, F )
+function [a, b, c, rhs] = Assemble_th( h, BC, Pr, F )
 
     %%%%%%
     % Assembles the LHS matrix and the RHS vector for the theta-system.
@@ -126,6 +133,21 @@ function [a, b, c, rhs] = Assemble_th( h, Pr, F )
     %     c -- super-diagonal
     %   rhs -- right-hand side vector
     %%%
+    
+    N = length(F);
+    
+    a_range = 2:N-2;
+    b_range = 2:N-1;
+    c_range = 3:N-1;
+    
+    a =  1      + 3 * Pr * F(a_range) / (2*h);
+    b = -2;
+    c = (1/h^2) - 3 * Pr * F(c_range) / (2*h);
+    rhs = zeros(length(b_range),1);
+    
+    % Account for boundary conditions, even though thf = 0.
+    rhs(1)   = rhs(1)   - ( 1      + 3 * Pr * F(b_range(1))   / (2*h)) * BC.th0;
+    rhs(end) = rhs(end) - ((1/h^2) - 3 * Pr * F(b_range(end)) / (2*h)) * BC.thf;
     
 end
 
