@@ -48,6 +48,8 @@ function [] = Problem_1()
     % Convergence criterion.
     epsilon = 0.1;
     
+    hf = figure();
+    
     %%%
     % Solve our three equations (for F, g, and theta) iteratively.
     %%%
@@ -60,16 +62,18 @@ function [] = Problem_1()
         
         % Loop until convergence criterion is met.
         norm = inf;
-        iteration = 0;
+        iteration = 1;
 %         while norm > epsilon
-        while iteration < 20
-            
-            iteration = iteration + 1;
+        while iteration < 200
         
             % Containers for previous iterations' values to determine convergence.
              F_prev =  F(iPr,:);
              g_prev =  g(iPr,:);
             th_prev = th(iPr,:);
+            
+            figure(hf);
+            hold on;
+            plot(eta, F_prev);
     
             % STEP 1: Solve the g-equation.
             
@@ -95,7 +99,10 @@ function [] = Problem_1()
 
             norm = F_norm + g_norm + th_norm;
 
-            fprintf('Iteration: %02i,  norm: %10.2e\n', iteration, norm);
+            fprintf('Iteration: %02i,  norm: %8.2e, F: %8.2e, g: %8.2e, th: %8.2e, \n', ...
+                           iteration,         norm,   F_norm,   g_norm,   th_norm);
+            
+            iteration = iteration + 1;
         
         end
             
