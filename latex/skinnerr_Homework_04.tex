@@ -1,0 +1,142 @@
+\documentclass[12pt]{article}
+
+\input{../../Latex_Common/skinnerr_latex_preamble_asen5417.tex}
+
+%%
+%% DOCUMENT START
+%%
+
+\begin{document}
+
+\pagestyle{fancyplain}
+\lhead{}
+\chead{}
+\rhead{}
+\lfoot{\hrule ASEN 5417: Homework 4}
+\cfoot{\hrule \thepage}
+\rfoot{\hrule Ryan Skinner}
+
+\noindent
+{\Large Homework 4}
+\hfill
+{\large Ryan Skinner}
+\\[0.5ex]
+{\large ASEN 5417: Numerical Methods}
+\hfill
+{\large Due 2015/10/13}\\
+\hrule
+\vspace{6pt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction} %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We solve the following problems to better understand numerical techniques for solving boundary value problems. As will be described in the methods section, our tools primarily consist of the Thomas algorithm and LU-decomposition.
+
+\subsection{Problem 1}
+
+Recall the boundary value problem for free convection along a vertical plate, as used in Problem 2 from Homework 3:
+\begin{equation}
+\begin{aligned}
+F''' + 3 F F'' - 2F'^2 + \theta &= 0 \;, \\
+\theta'' + 3 \text{Pr} F \theta' &= 0 \;,
+\end{aligned}
+\end{equation}
+\begin{equation}
+\begin{aligned}
+\eta = 0 &: &\quad F = F' =\; &0, &\quad \theta =\; &1 \;, \\
+\eta \rightarrow \infty &: &\quad F' \rightarrow\; &0, &\quad \theta \rightarrow\; &0
+\;.
+\end{aligned}
+\end{equation}
+
+Convert the 3\rd-order $F$-equation into a system of one 1\st- and one 2\nd-order equations, and solve this system coupled with the $\theta$-equation. With this approach, the BCs can be directly applied at $\eta = \{0, 10\}$. Solve the 2\nd-order equation with 2\nd-order central differences, and solve the 1\st-order equation with with the explicit Euler method. Use $N = 101$ equally-spaced grid points, and solve the three equations iteratively, subject to your own convergence criterion. Solve the resulting finite difference system for the 2\nd-order equations using the Thomas algorithm.
+\begin{enumerate}
+\item Compare results for $F'$ and $\theta$ to those obtained in Homework 3 for $\text{Pr} = \{1, 10\}$.
+\item Note that this time, we are solving a coupled BVP; compare the gradients $F''(0)$ and $\theta'(0)$ for each Prandtl number with those from Homework 3.
+\end{enumerate}
+
+\subsection{Problem 2}
+
+Discretize the boundary value problem
+\begin{equation}
+\frac{d^2 y}{d \theta^2} + \frac{y}{4} = 0
+\;,\qquad
+y(-1) = 0
+\;,\qquad
+y(1) = 2
+\;,\qquad
+-1 \le \theta \le 1
+\end{equation}
+using second-order central differences with 50 unequally-spaced grid points obtained from
+\begin{equation}
+\theta_i = \cos \left[ \pi (i-1) / N \right]
+\;,\qquad
+j = 1, \dots, N \!\! + \!\! 1
+\end{equation}
+where the total number of grid points is $N = 51$. Solve the resulting system using LU-decomposition, and compare results to the exact solution.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Methodology} %%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Problem 1}
+
+\subsection{Problem 2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Problem 1}
+
+%\begin{figure}[h!]
+%\begin{center}
+%\includegraphics[width=\textwidth]{Problem2_theta.eps}
+%\\
+%\caption{Blep.}
+%\label{fig:mylabel}
+%\end{center}
+%\end{figure}
+
+\subsection{Problem 2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion} %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Problem 1}
+
+\subsection{Problem 2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{References} %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+No external references were used other than the course notes for this assignment.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Appendix: MATLAB Code} %%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The following code listings generate all figures presented in this homework assignment.
+
+%\includecode{Problem_1.m}
+%\includecode{Problem_2.m}
+
+%%
+%% DOCUMENT END
+%%
+\end{document}
