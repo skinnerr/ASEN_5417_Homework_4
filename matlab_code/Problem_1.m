@@ -33,9 +33,9 @@ function [] = Problem_1()
     BC.thf = 0;
     
     % Solution variables (indexed by Prandtl number and then time step).
-     F = zeros(nPr, N);
-     g = zeros(nPr, N);
-    th = zeros(nPr, N);
+     F = nan(nPr, N);
+     g = nan(nPr, N);
+    th = nan(nPr, N);
     
     % Initial guesses for solution variables, based on linear approximation to Homework 3.
      F(1,:) = linspace(0, 0.50, N);
@@ -64,7 +64,7 @@ function [] = Problem_1()
         norm = inf;
         iteration = 1;
 %         while norm > epsilon
-        while iteration < 200
+        while iteration < 5
         
             % Containers for previous iterations' values to determine convergence.
              F_prev =  F(iPr,:);
@@ -186,43 +186,13 @@ function [ F ] = Euler( g, F0, delta )
     % Integrates the data set g using the Euler method, given the initial value F0.
     %%%
     
-    F = zeros(length(g),1);
+    F = nan(length(g),1);
     F(1) = F0;
     for i = 1:(length(g)-1)
         F(i+1) = F(i) + delta * g(i);
     end
     
 end
-
-function [ x ] = Thomas( a, b, c, rhs )
-    
-    %%%%%%
-    % Solves a tri-diagonal matrix system using the Thomas algorithm.
-    %     a -- diagonal
-    %     b -- sub-diagonal
-    %     c -- super-diagonal
-    %   rhs -- right-hand side vector
-    %   sol -- solution vector
-    %%%
-    
-    % Eliminate the sub-diagonal.
-    for i = 1:length(c)
-        r = b(i) / a(i);
-          a(i+1) =   a(i+1) - r * c(i);
-        rhs(i+1) = rhs(i+1) - r * rhs(i);
-    end
-    
-    % Back-substitute and calculate the solution vector.
-    x = zeros(length(a),1);
-    x(end) = rhs(end) / a(end);
-    for i = length(a)-1:-1:1
-        x(i) = (rhs(i) - c(i) * x(i+1)) / a(i);
-    end
-
-end
-
-
-
 
 
 

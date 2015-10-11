@@ -70,13 +70,14 @@ y(1) = 2
 \;,\qquad
 -1 \le \theta \le 1
 \end{equation}
-using second-order central differences with 50 unequally-spaced grid points obtained from
+using second-order central differences with $N = 51$ unequally-spaced grid points obtained from
 \begin{equation}
-\theta_i = \cos \left[ \pi (i-1) / N \right]
+\theta_i = \cos \left[ \pi \; (i-1) / (N-1) \right]
 \;,\qquad
-j = 1, \dots, N \!\! + \!\! 1
+i = 1, \dots, N
+\;.
 \end{equation}
-where the total number of grid points is $N = 51$. Solve the resulting system using LU-decomposition, and compare results to the exact solution.
+Solve the resulting system using LU-decomposition, and compare results to the exact solution.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
