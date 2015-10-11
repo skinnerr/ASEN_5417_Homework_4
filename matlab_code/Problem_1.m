@@ -53,47 +53,69 @@ function [] = Problem_1()
     %%%
     
     % Loop through Prandtl numbers.
-    for iPr = 1:nPr
+%     for iPr = 1:nPr
+    for iPr = 1:1
+        
+        fprintf('Working on Pr = %i\n', Pr(iPr));
         
         % Loop until convergence criterion is met.
         norm = inf;
         iteration = 0;
-        while norm < epsilon
+%         while norm > epsilon
+        while iteration < 5
             
             iteration = iteration + 1;
-            
+        
             % Containers for previous iterations' values to determine convergence.
              F_prev =  F(iPr,:);
              g_prev =  g(iPr,:);
             th_prev = th(iPr,:);
+            
+            figure();
+            hold on;
+            plot(eta, F_prev, 'DisplayName', 'F');
+            plot(eta, g_prev, 'DisplayName', 'g');
+            plot(eta,th_prev, 'DisplayName', 'theta');
+            title(sprintf('Iteration: %i',iteration));
+            xlabel('eta');
+            hleg = legend('show');
+            set(hleg, 'Location', 'best');
     
             % STEP 1: Solve the g-equation.
             
-            [a, b, c, rhs] = Assemble_g( h, BC, F(iPr,:), g(iPr,:), th(iPr,:) );
-            g(iPr,:) = Thomas(a, b, c, rhs);
+            [a, b, c, rhs] = Assemble_g( h, BC, F_prev, g_prev, th_prev );
+            sol = Thomas(a, b, c, rhs);
+            g(iPr,:) = [BC.g0; sol; BC.gf];
 
             % STEP 2: Solve the theta-equation.
 
-            [a, b, c, rhs] = Assemble_th( h, BC, Pr(iPr), F(iPr,:) );
-            th(iPr,:) = Thomas(a, b, c, rhs);
+            [a, b, c, rhs] = Assemble_th( h, BC, Pr(iPr), F_prev );
+            sol = Thomas(a, b, c, rhs);
+            th(iPr,:) = [BC.th0; sol; BC.thf];
 
             % STEP 3: Integrate g to obtain F using the Euler method.
 
-            F(iPr,:) = Euler(g(iPr,:), BC.g0, h);
+            F(iPr,:) = Euler(g_prev, BC.g0, h);
             
             % STEP 4: Assess convergence.
 
-             F_norm = sum( F_prev -  F(iPR,:)) / N;
-             g_norm = sum( g_prev -  g(iPR,:)) / N;
-            th_norm = sum(th_prev - th(iPR,:)) / N;
+             F_norm = sum(abs( F_prev -  F(iPr,:))) / N;
+             g_norm = sum(abs( g_prev -  g(iPr,:))) / N;
+            th_norm = sum(abs(th_prev - th(iPr,:))) / N;
 
             norm = F_norm + g_norm + th_norm;
 
-            fprintf('Iteration: %02i,  norm: %10.2e', iteration, norm);
+            fprintf('Iteration: %02i,  norm: %10.2e\n', iteration, norm);
         
         end
         
     end
+    
+    %%%
+    % Process results.
+    %%%
+    
+    % TODO TODO TODO
     
 end
 
@@ -101,26 +123,26 @@ function [a, b, c, rhs] = Assemble_g( h, BC, F, g, th )
 
     %%%%%%
     % Assembles the LHS matrix and the RHS vector for the g-system.
-    %     a -- sub-diagonal
-    %     b -- diagonal
+    %     a -- diagonal
+    %     b -- sub-diagonal
     %     c -- super-diagonal
     %   rhs -- right-hand side vector
     %%%
     
     N = length(F);
     
-    a_range = 2:N-2;
-    b_range = 2:N-1;
+    a_range = 2:N-1;
+    b_range = 2:N-2;
     c_range = 3:N-1;
     
-    a = ( 1/h^2) - 3 *  F(a_range) / (2*h);
-    b = (-2/h^2) - 2 *  g(b_range);
+    a = (-2/h^2) - 2 *  g(a_range);
+    b = ( 1/h^2) - 3 *  F(b_range) / (2*h);
     c = ( 1/h^2) + 3 *  F(c_range) / (2*h);
-    rhs =        - 1 * th(b_range);
+    rhs =        - 1 * th(a_range);
     
     % Account for boundary conditions, even though g0 = gf = 0.
-    rhs(1)   = rhs(1)   - ((1/h^2) - 3 * F(b_range(1))   / (2*h)) * BC.g0;
-    rhs(end) = rhs(end) - ((1/h^2) + 3 * F(b_range(end)) / (2*h)) * BC.gf;
+    rhs(1)   = rhs(1)   - ((1/h^2) - 3 * F(a_range(1))   / (2*h)) * BC.g0;
+    rhs(end) = rhs(end) - ((1/h^2) + 3 * F(a_range(end)) / (2*h)) * BC.gf;
 
 end
 
@@ -128,26 +150,26 @@ function [a, b, c, rhs] = Assemble_th( h, BC, Pr, F )
 
     %%%%%%
     % Assembles the LHS matrix and the RHS vector for the theta-system.
-    %     a -- sub-diagonal
-    %     b -- diagonal
+    %     a -- diagonal
+    %     b -- sub-diagonal
     %     c -- super-diagonal
     %   rhs -- right-hand side vector
     %%%
     
     N = length(F);
     
-    a_range = 2:N-2;
-    b_range = 2:N-1;
+    a_range = 2:N-1;
+    b_range = 2:N-2;
     c_range = 3:N-1;
     
-    a =  1      + 3 * Pr * F(a_range) / (2*h);
-    b = -2;
+    a = -2 * ones(1, length(a_range));
+    b =  1      + 3 * Pr * F(b_range) / (2*h);
     c = (1/h^2) - 3 * Pr * F(c_range) / (2*h);
-    rhs = zeros(length(b_range),1);
+    rhs = zeros(length(a_range),1);
     
     % Account for boundary conditions, even though thf = 0.
-    rhs(1)   = rhs(1)   - ( 1      + 3 * Pr * F(b_range(1))   / (2*h)) * BC.th0;
-    rhs(end) = rhs(end) - ((1/h^2) - 3 * Pr * F(b_range(end)) / (2*h)) * BC.thf;
+    rhs(1)   = rhs(1)   - ( 1      + 3 * Pr * F(a_range(1))   / (2*h)) * BC.th0;
+    rhs(end) = rhs(end) - ((1/h^2) - 3 * Pr * F(a_range(end)) / (2*h)) * BC.thf;
     
 end
 
@@ -164,3 +186,39 @@ function [ F ] = Euler( g, F0, delta )
     end
     
 end
+
+function [ sol ] = Thomas( a, b, c, rhs )
+    
+    %%%%%%
+    % Solves a tri-diagonal matrix system using the Thomas algorithm.
+    %     a -- diagonal
+    %     b -- sub-diagonal
+    %     c -- super-diagonal
+    %   rhs -- right-hand side vector
+    %   sol -- solution vector
+    %%%
+    
+    % Eliminate the sub-diagonal.
+    for i = 1:length(c)
+        r = b(i) / a(i);
+          a(i+1) =   a(i+1) - r * c(i);
+        rhs(i+1) = rhs(i+1) - r * rhs(i);
+    end
+    
+    % Back-substitute and calculate the solution vector.
+    sol = zeros(length(a),1);
+    sol(end) = rhs(end) / a(end);
+    for i = length(b)-1:-1:1
+        sol(i) = (rhs(i) - c(i) * sol(i+1)) / a(i);
+    end
+
+end
+
+
+
+
+
+
+
+
+
