@@ -40,10 +40,10 @@ function [] = Problem_1()
     % Initial guesses for solution variables, based on linear approximation to Homework 3.
      F(1,:) = linspace(0, 0.50, N);
      F(2,:) = linspace(0, 0.25, N);
-     g(1,:) = linspace(0,    0, N);
-     g(2,:) = linspace(0,    0, N);
-    th(1,:) = linspace(1,    0, N);
-    th(2,:) = linspace(1,    0, N);
+     g(1,:) = sin(linspace(0, 1, N)*pi) / 2;
+     g(2,:) = sin(linspace(0, 1, N)*pi) / 2;
+    th(1,:) = linspace(1, 0, N);
+    th(2,:) = linspace(1, 0, N);
     
     % Convergence criterion.
     epsilon = 0.1;
@@ -62,7 +62,7 @@ function [] = Problem_1()
         norm = inf;
         iteration = 0;
 %         while norm > epsilon
-        while iteration < 5
+        while iteration < 20
             
             iteration = iteration + 1;
         
@@ -70,16 +70,6 @@ function [] = Problem_1()
              F_prev =  F(iPr,:);
              g_prev =  g(iPr,:);
             th_prev = th(iPr,:);
-            
-            figure();
-            hold on;
-            plot(eta, F_prev, 'DisplayName', 'F');
-            plot(eta, g_prev, 'DisplayName', 'g');
-            plot(eta,th_prev, 'DisplayName', 'theta');
-            title(sprintf('Iteration: %i',iteration));
-            xlabel('eta');
-            hleg = legend('show');
-            set(hleg, 'Location', 'best');
     
             % STEP 1: Solve the g-equation.
             
@@ -108,6 +98,16 @@ function [] = Problem_1()
             fprintf('Iteration: %02i,  norm: %10.2e\n', iteration, norm);
         
         end
+            
+        figure();
+        hold on;
+        plot(eta, F(iPr,:), 'DisplayName', 'F');
+        plot(eta, g(iPr,:), 'DisplayName', 'g');
+        plot(eta,th(iPr,:), 'DisplayName', 'theta');
+        title(sprintf('Iteration: %i',iteration));
+        xlabel('eta');
+        hleg = legend('show');
+        set(hleg, 'Location', 'best');
         
     end
     
@@ -162,14 +162,14 @@ function [a, b, c, rhs] = Assemble_th( h, BC, Pr, F )
     b_range = 2:N-2;
     c_range = 3:N-1;
     
-    a = -2 * ones(1, length(a_range));
-    b =  1      + 3 * Pr * F(b_range) / (2*h);
-    c = (1/h^2) - 3 * Pr * F(c_range) / (2*h);
+    a = (-2/h^2) * ones(1, length(a_range));
+    b = ( 1/h^2) - 3 * Pr * F(b_range) / (2*h);
+    c = ( 1/h^2) + 3 * Pr * F(c_range) / (2*h);
     rhs = zeros(length(a_range),1);
     
     % Account for boundary conditions, even though thf = 0.
-    rhs(1)   = rhs(1)   - ( 1      + 3 * Pr * F(a_range(1))   / (2*h)) * BC.th0;
-    rhs(end) = rhs(end) - ((1/h^2) - 3 * Pr * F(a_range(end)) / (2*h)) * BC.thf;
+    rhs(1)   = rhs(1)   - ((1/h^2) - 3 * Pr * F(a_range(1))   / (2*h)) * BC.th0;
+    rhs(end) = rhs(end) - ((1/h^2) + 3 * Pr * F(a_range(end)) / (2*h)) * BC.thf;
     
 end
 
@@ -187,7 +187,7 @@ function [ F ] = Euler( g, F0, delta )
     
 end
 
-function [ sol ] = Thomas( a, b, c, rhs )
+function [ x ] = Thomas( a, b, c, rhs )
     
     %%%%%%
     % Solves a tri-diagonal matrix system using the Thomas algorithm.
@@ -206,10 +206,10 @@ function [ sol ] = Thomas( a, b, c, rhs )
     end
     
     % Back-substitute and calculate the solution vector.
-    sol = zeros(length(a),1);
-    sol(end) = rhs(end) / a(end);
-    for i = length(b)-1:-1:1
-        sol(i) = (rhs(i) - c(i) * sol(i+1)) / a(i);
+    x = zeros(length(a),1);
+    x(end) = rhs(end) / a(end);
+    for i = length(a)-1:-1:1
+        x(i) = (rhs(i) - c(i) * x(i+1)) / a(i);
     end
 
 end
