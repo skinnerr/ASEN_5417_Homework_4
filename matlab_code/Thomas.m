@@ -7,6 +7,8 @@ function [ x ] = Thomas( a, b, c, rhs )
     %     c -- super-diagonal
     %   rhs -- right-hand side vector
     %   sol -- solution vector
+    %
+    % Ryan Skinner, October 2015
     %%%
     
     % Eliminate the sub-diagonal.

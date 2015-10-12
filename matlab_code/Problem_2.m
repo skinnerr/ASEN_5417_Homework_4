@@ -24,9 +24,9 @@ function [] = Problem_2()
     % Assemble central difference matrix equation for y.
     [a, b, c, rhs] = Assemble_y(th, BC);
     
-    % Solve matrix equation.
-%     y = LUDecomp(a, b, c, rhs);
-    y = Thomas(a, b, c, rhs);
+    % Solve matrix equation using LU-decomposition.
+    [l, u] = LU_Decompose(a,b,c);
+    y = LU_Solve(b, l, u, rhs);
     y = [BC.y0; y; BC.yf];
 	
     % Compute analytical solution.
