@@ -64,7 +64,7 @@ function [] = Problem_1()
         norm = inf;
         iteration = 1;
 %         while norm > epsilon
-        while iteration < 5
+        while iteration < 15
         
             % Containers for previous iterations' values to determine convergence.
              F_prev =  F(iPr,:);
@@ -77,19 +77,22 @@ function [] = Problem_1()
     
             % STEP 1: Solve the g-equation.
             
-            [a, b, c, rhs] = Assemble_g( h, BC, F_prev, g_prev, th_prev );
+%             [a, b, c, rhs] = Assemble_g( h, BC, F_prev, g_prev, th_prev );
+            [a, b, c, rhs] = Assemble_g( h, BC, F(iPr,:), g(iPr,:), th(iPr,:));
             sol = Thomas(a, b, c, rhs);
             g(iPr,:) = [BC.g0; sol; BC.gf];
 
             % STEP 2: Solve the theta-equation.
 
-            [a, b, c, rhs] = Assemble_th( h, BC, Pr(iPr), F_prev );
+%             [a, b, c, rhs] = Assemble_th( h, BC, Pr(iPr), F_prev );
+            [a, b, c, rhs] = Assemble_th( h, BC, Pr(iPr), F(iPr,:) );
             sol = Thomas(a, b, c, rhs);
             th(iPr,:) = [BC.th0; sol; BC.thf];
 
             % STEP 3: Integrate g to obtain F using the Euler method.
 
-            F(iPr,:) = Euler(g_prev, BC.g0, h);
+%             F(iPr,:) = Euler(g_prev, BC.g0, h);
+            F(iPr,:) = Euler(g(iPr,:), BC.g0, h);
             
             % STEP 4: Assess convergence.
 

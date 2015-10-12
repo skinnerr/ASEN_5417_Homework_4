@@ -16,7 +16,6 @@ function [] = Problem_2()
     % Solution domain: the closed interval [-1, 1].
     N = 51;
     th = flip(cos(pi*(0:N-1)/(N-1)));
-    h = th(2:end) - th(1:end-1);
     
     % Boundary conditions (0 = initial, f = final).
     BC.y0 = 0;
@@ -31,15 +30,21 @@ function [] = Problem_2()
     y = [BC.y0; y; BC.yf];
 	
     % Compute analytical solution.
-    y_exact = (2/sin(1)) * sin((th+1)/2);
+    y_exact = (2/sin(1)) * sin((th+1)/2)';
     
     figure();
     hold on;
-    plot(th, y_exact, 'DisplayName', 'Analytical Solution');
-    plot(th,       y, 'DisplayName', '2nd-order Central Differences');
-    xlabel('theta');
+    plot(th, y_exact, 'LineStyle', '-', 'DisplayName', 'Analytical Solution');
+    plot(th,       y, 'o', 'DisplayName', '2nd-order Central Differences');
+    xlabel('\theta');
     hleg = legend('show');
-    set(hleg, 'Location', 'best');
+    set(hleg, 'Location', 'southeast');
+    
+    figure();
+    hold on;
+    plot(th, y-y_exact, '-o');
+    xlabel('\theta');
+    ylabel('Point-Wise Error');
     
 end
 
@@ -55,25 +60,23 @@ function [a, b, c, rhs] = Assemble_y( th, BC )
     
     N = length(th);
     
-    A = nan(N-2,1);
     B = nan(N-2,1);
     C = nan(N-2,1);
     D = nan(N-2,1);
     for i = 2:N-1
-        A(i-1) =   1 / (th(i+1) - th(i-1));
-        B(i-1) =   2 / (th(i+1) - th(i-1)) * (th(i+1) - th(i));
-        C(i-1) =   2 / (th(i+1) - th(i-1)) * (th(i)   - th(i-1));
-        D(i-1) = (-2 / (th(i+1) - th(i-1))) * (1/(th(i+1)-th(i)) + 1/(th(i)-th(i-1)));
+        B(i-1) =   2 / ((th(i+1) - th(i-1)) * (th(i+1) - th(i)));
+        C(i-1) =   2 / ((th(i+1) - th(i-1)) * (th(i)   - th(i-1)));
+        D(i-1) = (-2 / ( th(i+1) - th(i-1))) * (1/(th(i+1)-th(i)) + 1/(th(i)-th(i-1)));
     end
     
-    a = D;
-    b = C(2:end)   + A(2:end)   / 4;
-    c = B(1:end-1) + A(1:end-1) / 4;
+    a = 1/4 + D;
+    b = C(2:end);
+    c = B(1:end-1);
     rhs = zeros(N-2,1);
     
     % Account for boundary conditions.
-    rhs(1)   = rhs(1)   - (C(1)   + A(1)   / 4) * BC.y0;
-    rhs(end) = rhs(end) - (B(end) + A(end) / 4) * BC.yf;
+    rhs(1)   = rhs(1)   - C(1)   * BC.y0;
+    rhs(end) = rhs(end) - B(end) * BC.yf;
 
 end
 
