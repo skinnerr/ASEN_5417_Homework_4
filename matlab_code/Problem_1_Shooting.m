@@ -1,4 +1,4 @@
-function [Tc, Yc, Td, Yd] = Problem_1_Shooting( do_plot )
+function [Ta, Ya, Tb, Yb] = Problem_1_Shooting( do_plot )
 
     %%%%%%
     % Solves the boundary value problem for free convection along a plate for Prandtl

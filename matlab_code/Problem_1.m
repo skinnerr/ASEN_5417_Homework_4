@@ -111,10 +111,14 @@ function [] = Problem_1()
             iteration = iteration + 1;
         
         end
+        
+    end
     
-        %%%
-        % Process results.
-        %%%
+    %%%
+    % Process results.
+    %%%
+    
+    for iPr = length(Pr)
 
         if Pr(iPr) == 1
             T = T1;
@@ -125,9 +129,9 @@ function [] = Problem_1()
         else
             error('Prandtl number %.2f not supported.',Pr(iPr));
         end
-        
+
         % Comparison plots.
-        
+
         figure();
         hold on;
         plot(eta, F(iPr,:),      'DisplayName','F (2CD)');
@@ -138,11 +142,11 @@ function [] = Problem_1()
         plot(  T,   Y(:,4),'--k','DisplayName','theta (HW3)');
         xlabel('eta');
         hleg = legend('show');
-        set(hleg, 'Location', 'best');
-        
+        set(hleg, 'Location', 'eastoutside');
+
         % Determine F''(0) and theta'(0) using second-order forward differences.
-        fpp = ;
-        
+    %         fpp = ;
+
     end
     
 end
