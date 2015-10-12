@@ -172,7 +172,7 @@ function [a, b, c, rhs] = Assemble_th( h, BC, Pr, F )
     b_range = 2:N-2;
     c_range = 3:N-1;
     
-    a = (-2/h^2) * ones(1, length(a_range));
+    a = (-2/h^2) * ones(length(a_range), 1);
     b = ( 1/h^2) - 3 * Pr * F(b_range) / (2*h);
     c = ( 1/h^2) + 3 * Pr * F(c_range) / (2*h);
     rhs = zeros(length(a_range),1);

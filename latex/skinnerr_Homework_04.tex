@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[11pt]{article}
 
 \input{../../Latex_Common/skinnerr_latex_preamble_asen5417.tex}
 
@@ -43,6 +43,7 @@ Recall the boundary value problem for free convection along a vertical plate, as
 F''' + 3 F F'' - 2F'^2 + \theta &= 0 \;, \\
 \theta'' + 3 \text{Pr} F \theta' &= 0 \;,
 \end{aligned}
+\label{eq:prob1_original}
 \end{equation}
 \begin{equation}
 \begin{aligned}
@@ -50,6 +51,7 @@ F''' + 3 F F'' - 2F'^2 + \theta &= 0 \;, \\
 \eta \rightarrow \infty &: &\quad F' \rightarrow\; &0, &\quad \theta \rightarrow\; &0
 \;.
 \end{aligned}
+\label{eq:prob1_original_bcs}
 \end{equation}
 
 Convert the 3\rd-order $F$-equation into a system of one 1\st- and one 2\nd-order equations, and solve this system coupled with the $\theta$-equation. With this approach, the BCs can be directly applied at $\eta = \{0, 10\}$. Solve the 2\nd-order equation with 2\nd-order central differences, and solve the 1\st-order equation with with the explicit Euler method. Use $N = 101$ equally-spaced grid points, and solve the three equations iteratively, subject to your own convergence criterion. Solve the resulting finite difference system for the 2\nd-order equations using the Thomas algorithm.
@@ -69,6 +71,7 @@ y(-1) = 0
 y(1) = 2
 \;,\qquad
 -1 \le \theta \le 1
+\label{eq:prob2_ode}
 \end{equation}
 using second-order central differences with $N = 51$ unequally-spaced grid points obtained from
 \begin{equation}
@@ -76,6 +79,7 @@ using second-order central differences with $N = 51$ unequally-spaced grid point
 \;,\qquad
 i = 1, \dots, N
 \;.
+\label{eq:prob2_gridpoints}
 \end{equation}
 Solve the resulting system using LU-decomposition, and compare results to the exact solution.
 
@@ -89,6 +93,106 @@ Solve the resulting system using LU-decomposition, and compare results to the ex
 
 \subsection{Problem 2}
 
+To discretize \eqref{eq:prob2_ode} using the unequally-spaced grid points given in \eqref{eq:prob2_gridpoints}, we use the central difference formula for a second-order accurate second-derivative,
+\begin{equation}
+\begin{aligned}
+\frac{d^2 y}{d \theta^2}
+&=
+\left[
+\frac{-2}{(\theta_{i+1} - \theta_{i-1})}
+\left(
+\frac{1}{\theta_{i+1} - \theta_i}
++
+\frac{1}{\theta_i - \theta_{i-1}}
+\right)
+\right] y_i
+\!\!\!\!
+&+\left[
+\frac{2}{(\theta_{i+1} - \theta_{i-1})(\theta_{i+1} - \theta_{i})}
+\right] y_{i+1}
+\\
+&&+\left[
+\frac{2}{(\theta_{i+1} - \theta_{i-1})(\theta_i - \theta_{i-1})}
+\right] y_{i-1}
+\\
+&=
+[D_i] \: y_i + [B_i] \: y_{i+1} + [C_i] \: y_{i-1}
+\;,
+\end{aligned}
+\end{equation}
+to rewrite the governing equation as
+\begin{equation}
+y'' + \frac{y}{4} = 0
+\quad \rightarrow \quad
+[B_i] \: y_{i+1} + [\tfrac{1}{4} + D_i] \: y_i + [C_i] \: y_{i-1} = 0
+\;.
+\end{equation}
+Formation of the matrix equation proceeds in the standard manner for second-order central differences, resulting in a tridiagonal matrix equation $\mb{A} \mb{x} = \mb{f}$.
+
+To solve our system for $\mb{x}$, we employ LU decomposition. The aim is to perform the decomposition $\mb{A} = \mb{L} \mb{U}$, where $\mb{L}$ is lower-triangular, and $\mb{U}$ is upper-triangular. Consider the tridiagonal matrix decomposition $\mb{A} = \mb{L} \mb{U}$ in more detail,
+\begin{equation}
+\begin{bmatrix}
+a_1 & c_1 &        &         & \\
+b_1 & a_2 & c_2    &         & \\
+    & b_2 & \ddots & \ddots  & \\
+    &     & \ddots & \ddots  & c_{N-1} \\
+    &     &        & b_{N-1} & a_N
+\end{bmatrix}
+=
+\begin{bmatrix}
+l_1 &     &        &         & \\
+b_1 & l_2 &        &         & \\
+    & b_2 & \ddots &         & \\
+    &     & \ddots & \ddots  & \\
+    &     &        & b_{N-1} & l_N
+\end{bmatrix}
+\begin{bmatrix}
+1 & u_1 &        &        & \\
+  & 1   & u_2    &        & \\
+  &     & \ddots & \ddots & \\
+  &     &        & \ddots & u_{N-1} \\
+  &     &        &        & 1
+\end{bmatrix}
+\;,
+\end{equation}
+where all blank elements are 0. The values of $l_i$ and $u_i$ are determined iteratively using
+\begin{align}
+l_1     &= a_1 \notag \\
+u_{i-1} &= c_{i-1} \; / \; l_{i-1} \notag \\
+l_i     &= a_i - b_{i-1} u_{i-1}
+\;,
+\qquad
+i = 2, \dots, N
+\;.
+\end{align}
+
+Back-substitution is used to find the solution vector $\mb{x}$. First, the system $\mb{L} \mb{z} = \mb{f}$ is solved using
+\begin{align}
+z_1 &= f_1 \; / \; l_1 \notag \\
+z_i &= (f_i - b_{i-1} z_{i-1}) \; / \; l_i
+\;,
+\qquad
+i = 2, \dots, N
+\;.
+\end{align}
+Then we solve the system $\mb{U} \mb{x} = \mb{z}$ for $\mb{x}$ with
+\begin{align}
+x_N &= z_N \notag \\
+x_i &= z_i - u_i x_{i+1}
+\;,
+\qquad
+i = N-1, N-2, \dots, 1
+\;.
+\end{align}
+
+LU decomposition is very efficient in scenarios where the governing equations remain the same, but solutions are desired for many instantiations of $\mb{f}$. Since $\mb{L}$ and $\mb{U}$ must be computed only once, repeated solution procedures are rapid once these matrices are known.
+
+Finally, to assess numerical accuracy, we note that the analytical solution to \eqref{eq:prob2_ode} is
+\begin{equation}
+y(\theta) = \frac{2}{\sin(1)} \sin \left( \frac{\theta + 1}{2} \right)
+\;.
+\end{equation}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -97,14 +201,17 @@ Solve the resulting system using LU-decomposition, and compare results to the ex
 
 \subsection{Problem 1}
 
-%\begin{figure}[h!]
-%\begin{center}
-%\includegraphics[width=\textwidth]{Problem2_theta.eps}
-%\\
-%\caption{Blep.}
-%\label{fig:mylabel}
-%\end{center}
-%\end{figure}
+Analytical and central difference solutions to \eqref{eq:prob2_ode} are presented in \figref{fig:Prob2}. The global relative error, essentially summing over all points in the relative error plot below, is $1.61 \times 10^{-3}$.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[height=1.95in]{Prob2_solution.eps}
+\includegraphics[height=1.95in]{Prob2_error.eps}
+\\[-0.5cm]
+\caption{Analytical and central difference solutions to \eqref{eq:prob2_ode} using non-uniform mesh spacing, and the point-wise relative error.}
+\label{fig:Prob2}
+\end{center}
+\end{figure}
 
 \subsection{Problem 2}
 
@@ -117,6 +224,8 @@ Solve the resulting system using LU-decomposition, and compare results to the ex
 \subsection{Problem 1}
 
 \subsection{Problem 2}
+
+Results for the non-uniform grid solution match the exact analytical solution very well, as evinced by the low global and point-wise relative error. LU decomposition proves to be an effective method for solution of the matrix equation, but its superior efficiency is unable to be demonstrated in this problem, due to the fact that we are solving our matrix system once for a single RHS vector.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

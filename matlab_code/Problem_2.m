@@ -32,19 +32,26 @@ function [] = Problem_2()
     % Compute analytical solution.
     y_exact = (2/sin(1)) * sin((th+1)/2)';
     
+    % Compute relative error (pointwise).
+    relerr = (y(2:end-1)-y_exact(2:end-1))./y_exact(2:end-1);
+    
     figure();
     hold on;
     plot(th, y_exact, 'LineStyle', '-', 'DisplayName', 'Analytical Solution');
     plot(th,       y, 'o', 'DisplayName', '2nd-order Central Differences');
     xlabel('\theta');
+    ylabel('y');
     hleg = legend('show');
     set(hleg, 'Location', 'southeast');
     
     figure();
     hold on;
-    plot(th, y-y_exact, '-o');
+    plot(th(2:end-1), relerr, '-o');
     xlabel('\theta');
-    ylabel('Point-Wise Error');
+    ylabel('Relative Error');
+    
+    error = sum(abs(relerr));
+    fprintf('Total error norm: %.2e\n',error);
     
 end
 
