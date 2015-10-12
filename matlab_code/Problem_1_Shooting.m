@@ -1,4 +1,4 @@
-function [] = Problem_2()
+function [Tc, Yc, Td, Yd] = Problem_1_Shooting( do_plot )
 
     %%%%%%
     % Solves the boundary value problem for free convection along a plate for Prandtl
@@ -37,41 +37,45 @@ function [] = Problem_2()
     [Tc,Yc] = ode45(@(t, y) convection(t, y, 1),  [0,10],      [0,0,c.x0,1,-0.5671]);
     [Td,Yd] = ode45(@(t, y) convection(t, y, 10), [0,10],      [0,0,d.x0,1,-1.17]);
     
-    % Plot F.
-    figure();
-    hold on;
-    plot(Ta,Ya(:,1), '-','DisplayName','(RK4) Pr = 1');
-    plot(Tb,Yb(:,1), '-','DisplayName','(RK4) Pr = 10');
-    plot(Tc,Yc(:,1),'--','DisplayName','(ode45) Pr = 1');
-    plot(Td,Yd(:,1),'--','DisplayName','(ode45) Pr = 10');
-    xlabel('\eta');
-    ylabel('F');
-    hleg = legend('show');
-    set(hleg,'Location','northeastoutside');
-
-    % Plot F'.
-    figure();
-    hold on;
-    plot(Ta,Ya(:,2), '-','DisplayName','(RK4) Pr = 1');
-    plot(Tb,Yb(:,2), '-','DisplayName','(RK4) Pr = 10');
-    plot(Tc,Yc(:,2),'--','DisplayName','(ode45) Pr = 1');
-    plot(Td,Yd(:,2),'--','DisplayName','(ode45) Pr = 10');
-    xlabel('\eta');
-    ylabel('F''');
-    hleg = legend('show');
-    set(hleg,'Location','northeastoutside');
+    if do_plot
     
-    % Plot theta.
-    figure();
-    hold on;
-    plot(Ta,Ya(:,4), '-','DisplayName','(RK4) Pr = 1');
-    plot(Tb,Yb(:,4), '-','DisplayName','(RK4) Pr = 10');
-    plot(Tc,Yc(:,4),'--','DisplayName','(ode45) Pr = 1');
-    plot(Td,Yd(:,4),'--','DisplayName','(ode45) Pr = 10');
-    xlabel('\eta');
-    ylabel('\theta');
-    hleg = legend('show');
-    set(hleg,'Location','northeastoutside');
+        % Plot F.
+        figure();
+        hold on;
+        plot(Ta,Ya(:,1), '-','DisplayName','(RK4) Pr = 1');
+        plot(Tb,Yb(:,1), '-','DisplayName','(RK4) Pr = 10');
+        plot(Tc,Yc(:,1),'--','DisplayName','(ode45) Pr = 1');
+        plot(Td,Yd(:,1),'--','DisplayName','(ode45) Pr = 10');
+        xlabel('\eta');
+        ylabel('F');
+        hleg = legend('show');
+        set(hleg,'Location','northeastoutside');
+
+        % Plot F'.
+        figure();
+        hold on;
+        plot(Ta,Ya(:,2), '-','DisplayName','(RK4) Pr = 1');
+        plot(Tb,Yb(:,2), '-','DisplayName','(RK4) Pr = 10');
+        plot(Tc,Yc(:,2),'--','DisplayName','(ode45) Pr = 1');
+        plot(Td,Yd(:,2),'--','DisplayName','(ode45) Pr = 10');
+        xlabel('\eta');
+        ylabel('F''');
+        hleg = legend('show');
+        set(hleg,'Location','northeastoutside');
+
+        % Plot theta.
+        figure();
+        hold on;
+        plot(Ta,Ya(:,4), '-','DisplayName','(RK4) Pr = 1');
+        plot(Tb,Yb(:,4), '-','DisplayName','(RK4) Pr = 10');
+        plot(Tc,Yc(:,4),'--','DisplayName','(ode45) Pr = 1');
+        plot(Td,Yd(:,4),'--','DisplayName','(ode45) Pr = 10');
+        xlabel('\eta');
+        ylabel('\theta');
+        hleg = legend('show');
+        set(hleg,'Location','northeastoutside');
+        
+    end
     
 end
 

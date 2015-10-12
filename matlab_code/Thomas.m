@@ -14,8 +14,8 @@ function [ x ] = Thomas( diag, sub, sup, rhs )
     % Eliminate the sub-diagonal.
     for i = 1:length(sup)
         r = sub(i) / diag(i);
-          diag(i+1) =   diag(i+1) - r * sup(i);
-        rhs(i+1) = rhs(i+1) - r * rhs(i);
+        diag(i+1) = diag(i+1) - r * sup(i);
+         rhs(i+1) =  rhs(i+1) - r * rhs(i);
     end
     
     % Back-substitute and calculate the solution vector.

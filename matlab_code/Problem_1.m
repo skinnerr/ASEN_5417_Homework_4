@@ -11,6 +11,12 @@ function [] = Problem_1()
     Set_Default_Plot_Properties();
     
     %%%
+    % Calculate the solutions from Homework 3, for Pr = {1, 10}.
+    %%%
+    
+    [T1, Y1, T10, Y10] = Problem_1_Shooting(false);
+    
+    %%%
     % Define variables specific to the boundary-value problem.
     %%%
     
@@ -42,14 +48,11 @@ function [] = Problem_1()
      F(2,:) = linspace(0, 0.25, N);
      g(1,:) = sin(linspace(0, 1, N)*pi) / 2;
      g(2,:) = sin(linspace(0, 1, N)*pi) / 2;
-%      g(2,:) = [linspace(0,0.1,5), linspace(0.1,0,N-5)]; % DEBUGGING
     th(1,:) = linspace(1, 0, N);
     th(2,:) = linspace(1, 0, N);
     
     % Convergence criterion.
-    epsilon = 1e-2;
-    
-    hf = figure();
+    epsilon = 1e-5;
     
     %%%
     % Solve our three equations (for F, g, and theta) iteratively.
@@ -69,11 +72,6 @@ function [] = Problem_1()
              F_prev =  F(iPr,:);
              g_prev =  g(iPr,:);
             th_prev = th(iPr,:);
-            
-            % DEBUGGING: plot convergence of F...
-            figure(hf);
-            hold on;
-            plot(eta, F_prev);
     
             %%%
             % STEP 1: Solve the g-equation.
@@ -113,24 +111,39 @@ function [] = Problem_1()
             iteration = iteration + 1;
         
         end
-            
+    
+        %%%
+        % Process results.
+        %%%
+
+        if Pr(iPr) == 1
+            T = T1;
+            Y = Y1;
+        elseif Pr(iPr) == 10
+            T = T10;
+            Y = Y10;
+        else
+            error('Prandtl number %.2f not supported.',Pr(iPr));
+        end
+        
+        % Comparison plots.
+        
         figure();
         hold on;
-        plot(eta, F(iPr,:), 'DisplayName', 'F');
-        plot(eta, g(iPr,:), 'DisplayName', 'g');
-        plot(eta,th(iPr,:), 'DisplayName', 'theta');
-        title(sprintf('Iteration: %i',iteration));
+        plot(eta, F(iPr,:),      'DisplayName','F (2CD)');
+        plot(  T,   Y(:,1),'--', 'DisplayName','F (HW3)');
+        plot(eta, g(iPr,:),      'DisplayName','F'' (2CD)');
+        plot(  T,   Y(:,2),'--', 'DisplayName','F'' (HW3)');
+        plot(eta,th(iPr,:),      'DisplayName','theta (2CD)');
+        plot(  T,   Y(:,4),'--k','DisplayName','theta (HW3)');
         xlabel('eta');
         hleg = legend('show');
         set(hleg, 'Location', 'best');
         
+        % Determine F''(0) and theta'(0) using second-order forward differences.
+        fpp = ;
+        
     end
-    
-    %%%
-    % Process results.
-    %%%
-    
-    % TODO TODO TODO
     
 end
 
