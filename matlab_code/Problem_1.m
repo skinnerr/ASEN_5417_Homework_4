@@ -23,7 +23,7 @@ function [] = Problem_1()
     % Solution domain.
     eta0 = 0;
     etaf = 10;
-    N = 101;
+    N = 501;
     eta = linspace(eta0, etaf, N)';
     h = eta(2) - eta(1);
     
@@ -118,7 +118,11 @@ function [] = Problem_1()
     % Process results.
     %%%
     
-    for iPr = length(Pr)
+    hF  = figure();
+    hg  = figure();
+    hth = figure();
+    
+    for iPr = 1:length(Pr)
 
         if Pr(iPr) == 1
             T = T1;
@@ -130,23 +134,45 @@ function [] = Problem_1()
             error('Prandtl number %.2f not supported.',Pr(iPr));
         end
 
-        % Comparison plots.
+        % Plot F
 
-        figure();
+        figure(hF);
         hold on;
-        plot(eta, F(iPr,:),      'DisplayName','F (2CD)');
-        plot(  T,   Y(:,1),'--', 'DisplayName','F (HW3)');
-        plot(eta, g(iPr,:),      'DisplayName','F'' (2CD)');
-        plot(  T,   Y(:,2),'--', 'DisplayName','F'' (HW3)');
-        plot(eta,th(iPr,:),      'DisplayName','theta (2CD)');
-        plot(  T,   Y(:,4),'--k','DisplayName','theta (HW3)');
-        xlabel('eta');
-        hleg = legend('show');
-        set(hleg, 'Location', 'eastoutside');
+        plot(eta, F(iPr,:),     'DisplayName',sprintf('Pr = %i (2CD)',Pr(iPr)));
+        plot(  T,   Y(:,1),'--','DisplayName',sprintf('Pr = %i (HW3)',Pr(iPr)));
+        xlabel('\eta');
+        ylabel('F');
+        
+        % Plot F'
+        
+        figure(hg);
+        hold on;
+        plot(eta, g(iPr,:),     'DisplayName',sprintf('Pr = %i (2CD)',Pr(iPr)));
+        plot(  T,   Y(:,2),'--','DisplayName',sprintf('Pr = %i (HW3)',Pr(iPr)));
+        xlabel('\eta');
+        ylabel('F''');
+        
+        % Plot theta
+        
+        figure(hth);
+        hold on;
+        plot(eta,th(iPr,:),     'DisplayName',sprintf('Pr = %i (2CD) ',Pr(iPr)));
+        plot(  T,   Y(:,4),'--','DisplayName',sprintf('Pr = %i (HW3)',Pr(iPr)));
+        xlabel('\eta');
+        ylabel('\theta');
 
         % Determine F''(0) and theta'(0) using second-order forward differences.
-    %         fpp = ;
+        Fpp = ( 2* F(iPr,1) - 5* F(iPr,2) + 4* F(iPr,3) - F(iPr,4)) / (h^2);
+        thp = (-3*th(iPr,1) + 4*th(iPr,2) -   th(iPr,3)) / (2*h);
+        
+        fprintf('Pr = %2i: F''''(0) = %7.4f, th''(0) = %7.4f\n', Pr(iPr), Fpp, thp);
 
+    end
+    
+    for h = [hF, hg, hth]
+        figure(h);
+        hleg = legend('show');
+        set(hleg, 'Location', 'eastoutside');
     end
     
 end

@@ -215,6 +215,19 @@ Analytical and central difference solutions to \eqref{eq:prob2_ode} are presente
 
 \subsection{Problem 2}
 
+Plots comparing the central difference and shooting method results for $F$, $F'$, and $\theta$ are presented in \figref{fig:Prob1}. Note that the shooting method used for Homework 3 was coupled to a fourth-order Runge-Kutta integration scheme, so the governing equations are satisfied to higher-order accuracy than the second-order central difference scheme employed here.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=\textwidth]{Prob1_F.eps}
+\includegraphics[width=\textwidth]{Prob1_Fprime.eps}
+\includegraphics[width=\textwidth]{Prob1_theta.eps}
+\\[-0.5cm]
+\caption{$F$, $F'$, and $\theta$ as functions of $\eta$ for Prandtl numbers $\text{Pr} = \{1, 10\}$. The second-order accuracy central difference (2CD) solutions are compared to the results of Homework 3 (HW3).}
+\label{fig:Prob1}
+\end{center}
+\end{figure}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion} %%%%%%%%%%%%%%%%%%%%%%%%%%%%
