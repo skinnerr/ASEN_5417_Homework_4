@@ -91,6 +91,8 @@ Solve the resulting system using LU-decomposition, and compare results to the ex
 
 \subsection{Problem 1}
 
+For part (b), second-order accurate forward differences
+
 \subsection{Problem 2}
 
 To discretize \eqref{eq:prob2_ode} using the unequally-spaced grid points given in \eqref{eq:prob2_gridpoints}, we use the central difference formula for a second-order accurate second-derivative,
@@ -217,6 +219,26 @@ Analytical and central difference solutions to \eqref{eq:prob2_ode} are presente
 
 Plots comparing the central difference and shooting method results for $F$, $F'$, and $\theta$ are presented in \figref{fig:Prob1}. Note that the shooting method used for Homework 3 was coupled to a fourth-order Runge-Kutta integration scheme, so the governing equations are satisfied to higher-order accuracy than the second-order central difference scheme employed here.
 
+Table \ref{tbl:Prob1} shows the differences in $F''$ and $\theta'$ boundary conditions at $\eta = 0$ for different Prandtl numbers and 
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+BC & Pr & Homework 3 & Homework 4 \\
+\midrule
+    $F''(0)$ &  1 &  0.6000 &  0.6524 \\
+    $F''(0)$ & 10 &  0.4100 &  0.4304 \\
+$\theta'(0)$ &  1 & -0.5671 & -0.5644 \\
+$\theta'(0)$ & 10 & -1.1700 & -1.1582 \\
+\bottomrule
+\end{tabular}
+\\[6pt]
+\caption{Comparison of the boundary conditions $F''(0)$ and $\theta'(0)$ between Prandtl numbers and the methods employed in Homework 3 (fourth-order Runge-Kutta shooting method) and Homework 4 (second-order central differences and the Euler method).}
+\label{tbl:Prob1}
+\end{table}
+
+
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=\textwidth]{Prob1_F.eps}
@@ -254,10 +276,17 @@ No external references were used other than the course notes for this assignment
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The following code listings generate all figures presented in this homework assignment.
+The following code listings generate all figures presented in this homework assignment. Though \lstinline|Problem_1| calls a modified version of Homework 3's code through the function \lstinline|Problem_1_Shooting|, the latter function will not be listed here in the interest of brevity.
 
-%\includecode{Problem_1.m}
-%\includecode{Problem_2.m}
+\includecode{Problem_1.m}
+\includecode{Assemble_g.m}
+\includecode{Assemble_th.m}
+\includecode{Thomas.m}
+\includecode{Euler.m}
+\includecode{Problem_2.m}
+\includecode{Assemble_y.m}
+\includecode{LU_Decompose.m}
+\includecode{LU_Solve.m}
 
 %%
 %% DOCUMENT END

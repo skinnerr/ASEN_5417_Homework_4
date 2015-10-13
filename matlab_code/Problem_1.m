@@ -162,7 +162,7 @@ function [] = Problem_1()
         ylabel('\theta');
 
         % Determine F''(0) and theta'(0) using second-order forward differences.
-        Fpp = ( 2* F(iPr,1) - 5* F(iPr,2) + 4* F(iPr,3) - F(iPr,4)) / (h^2);
+        Fpp = (-3* g(iPr,1) + 4* g(iPr,2) -    g(iPr,3)) / (2*h);
         thp = (-3*th(iPr,1) + 4*th(iPr,2) -   th(iPr,3)) / (2*h);
         
         fprintf('Pr = %2i: F''''(0) = %7.4f, th''(0) = %7.4f\n', Pr(iPr), Fpp, thp);
