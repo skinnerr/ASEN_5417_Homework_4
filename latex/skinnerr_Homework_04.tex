@@ -33,7 +33,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-We solve the following problems to better understand numerical techniques for solving boundary value problems. As will be described in the methods section, our tools primarily consist of the Thomas algorithm and LU-decomposition.
+We solve the following boundary value problems (BVPs) using primarily central differences on uniform and non-uniform meshes, the Thomas algorithm, the Euler method, and LU-decomposition.
 
 \subsection{Problem 1}
 
@@ -91,15 +91,146 @@ Solve the resulting system using LU-decomposition, and compare results to the ex
 
 \subsection{Problem 1}
 
-For part (b), second-order accurate forward differences
+We first re-write the original boundary value problem as
+\begin{align}
+F' &= g
+\label{eq:Fp}
+\\
+g'' &= - 3 F g' + 2g^2 - \theta
+\label{eq:gpp}
+\\
+\theta'' &= -3 \text{Pr} F \theta' \;,
+\label{eq:thpp}
+\end{align}
+\begin{equation}
+\begin{aligned}
+\eta = 0 &: &\quad F = g =\; &0, &\quad \theta =\; &1 \;, \\
+\eta \rightarrow \infty &: &\quad g \rightarrow\; &0, &\quad \theta \rightarrow\; &0
+\;.
+\end{aligned}
+\end{equation}
+
+We proceed to discretize these equations on a uniform grid, indexing the solution variables as $F_i$, $g_i$, and $\theta_i$, where $i = 1, \dots, N$. Equations \eqref{eq:gpp} and \eqref{eq:thpp} are solved in a coupled manner using second-order central differences. Then the first equation \eqref{eq:Fp} is solved independently using the Euler method,
+\begin{align}
+F_1 &= F(0) \notag \\
+F_i &= F_{i-1} + h g_i \;, \qquad i = 2,\dots,N \;,
+\label{eq:euler}
+\end{align}
+where $h$ is the grid spacing. This procedure is repeated iteratively until the sum of relative errors per grid point between the current and previous iteration over all three variables decreases to $\epsilon < 10^{-5}$. Thus during each iteration, \eqref{eq:gpp} and \eqref{eq:thpp} are solved simultaneously, and then the value of $F$ is updated according to \eqref{eq:euler}.
+
+The second-order central difference method  approximates the first- and second-derivatives of a function $f(x)$ at location $x_i$ as
+\begin{equation}
+\begin{aligned}
+\frac{d f}{d x} \Big|_{x_i}
+&\approx
+\frac{1}{2h} \left( f_{i+1} - f_{i-1} \right)
+\\
+\frac{d^2 f}{d x^2} \Big|_{x_i}
+&\approx
+\frac{1}{h^2} \left( f_{i+1} - 2 f_i + f_{i-1} \right)
+\;,
+\end{aligned}
+\end{equation}
+where $f_i \equiv f(x_i)$. These approximations are substituted into the governing equations, and, for the current BVP, yield a $g$-equation and a $\theta$-equation:
+\begin{equation}
+  \overbrace{\left( \frac{1}{h^2} - \frac{3 \hat{F}_i}{2h} \right)}^{b_i} g_{i-1}
++ \overbrace{\left( \frac{-2}{h^2} - 2 \hat{g}_i \right)}^{a_i} g_i
++ \overbrace{\left( \frac{1}{h^2} + \frac{3 \hat{F}_i}{2h} \right)}^{c_i} g_{i+1}
+= \overbrace{-\hat{\theta}_i}^{d_i}
+\;,
+\label{eq:g_eq}
+\end{equation}
+\begin{equation}
+  \overbrace{\left( \frac{1}{h^2} - \frac{3 \text{Pr} \hat{F}_i}{2h} \right)}^{b_i} g_{i-1}
++ \overbrace{\left( \frac{-2}{h^2} \right)}^{a_i} g_i
++ \overbrace{\left( \frac{1}{h^2} + \frac{3 \text{Pr} \hat{F}_i}{2h} \right)}^{c_i} g_{i+1}
+= \overbrace{0}^{d_i}
+\;,
+\label{eq:th_eq}
+\end{equation}
+where the hat operator $\hat{\cdot}_i$ indicates use of $\cdot_i$ from the previous iteration. This method allows us to circumvent the non-linearity in the $g$-equation, \eqref{eq:gpp}, and further reminds us that the equations for $g$ and $\theta$ are to be solved simultaneously.
+
+Each of these equations defines a system within the interior of the domain, which can be written as $\mb{A} \mb{f} = \mb{y}$, where $\mb{A}$ is tridiagonal due to the form of the central difference equations. In more explicit form,
+\begin{equation}
+\begin{bmatrix}
+a_2 & c_2 &        &         &         &         &         \\
+b_3 & a_3 &    c_3 &         &         &         &         \\
+    & b_4 &    a_4 & c_4     &         &         &         \\
+    &     & \ddots & \ddots  & \ddots  &         &         \\
+    &     &        & b_{N-3} & a_{N-3} & c_{N-3} &         \\
+    &     &        &         & b_{N-2} & a_{N-2} & c_{N-2} \\
+    &     &        &         &         & b_{N-1} & a_{N-1}
+\end{bmatrix}
+\begin{bmatrix}
+f_2 \\
+f_3 \\
+f_4 \\
+\vdots \\
+f_{N-3} \\
+f_{N-2} \\
+f_{N-1}
+\end{bmatrix}
+=
+\begin{bmatrix}
+d_2 - b_2 f_1 \\
+d_3 \\
+d_4 \\
+\vdots \\
+d_{N-3} \\
+d_{N-2} \\
+d_{N-1} - c_{N-1} f_N
+\end{bmatrix}
+\;,
+\end{equation}
+where $a_i$, $b_i$, $c_i$, and $d_i$ are obtained by applying central differences to the governing equation for $f_i$, as in \eqref{eq:g_eq} and \eqref{eq:th_eq}. The subtracted terms in the first and last elements of $\mb{y}$ account for Dirichlet boundary conditions imposed as known values of $f_1$ and $f_N$.
+
+Here, the Thomas algorithm is used to solve each central difference matrix equation. To discuss this algorithm, we index elements in the right-hand-side vector ($y$), and the sub- ($b$), super- ($c$), and diagonal ($a$) terms starting with $i=1$. Furthermore, we let the number of diagonal elements be $n$. The first step of the Thomas algorithm is to eliminate the sub-diagonal with
+\begin{align}
+r_i &= b_i / a_i \notag \\
+a_{i+1} &= a_{i+1} - r_i c_i \notag \\
+y_{i+1} &= y_{i+1} - r_i y_i
+\;, \qquad i = 1,\dots,n-1
+\;.
+\end{align}
+Next, back-substitution is performed,
+\begin{align}
+f_n &= y_n / a_n \notag \\
+f_i &= \left( y_i - c_i f_{i+1} \right) / a_i
+\;, \qquad i = n-1,\dots,1
+\;,
+\end{align}
+which yields the solution vector $\mb{f}$.
+
+Because this method is iterative, we must establish initial guesses $F^{(0)}$, $g^{(0)}$, and $\theta^{(0)}$, which span the BVP's domain $\eta \in [0, 10]$. The exact values are not terribly important, but it is desirable that they satisfy the requisite boundary conditions and have reasonable non-zero values within the domain. These considerations, coupled with some insight into the behavior of $F(\eta)$ from Homework 3, result in our choice of initial conditions:
+\begin{itemize}
+\item $F^{(0)}$ linearly interpolates 0 to $\{\tfrac{1}{2}, \tfrac{1}{4}\}$ over $\eta$ for $\text{Pr} = \{1, 10\}$.
+\item $g^{(0)}$ maps a sinusoid on the interval $[0, \pi]$ with amplitude $\tfrac{1}{2}$ to the full domain of $\eta$.
+\item $\theta^{(0)}$ linearly interpolates 1 to 0 over $\eta$.
+\end{itemize}
+
+This concludes our discussion of the solution method for Problem 1. However, two minor points remain:
+
+\begin{enumerate}
+
+\item The Runge-Kutta method used in Homework 3 uses 501 grid points. In order to compare our solution more closely to that of Homework 3, we use $N = 501$ grid points instead of the requested 101.
+
+\item Lastly, for part (b), the values of $F''(0)$ and $\theta'(0)$ are calculated using the second-order-accurate forward difference formula
+\begin{equation}
+\frac{d f_i}{d x}
+\approx
+\frac{1}{2h} \left( -3 f_i + 4 f_{i+1} - f_{i+2} \right)
+\;.
+\end{equation}
+
+\end{enumerate}
 
 \subsection{Problem 2}
 
-To discretize \eqref{eq:prob2_ode} using the unequally-spaced grid points given in \eqref{eq:prob2_gridpoints}, we use the central difference formula for a second-order accurate second-derivative,
+To discretize \eqref{eq:prob2_ode} using the unequally-spaced grid points given in \eqref{eq:prob2_gridpoints}, we use the central difference formula for a second-order-accurate second-derivative,
 \begin{equation}
 \begin{aligned}
 \frac{d^2 y}{d \theta^2}
-&=
+&\approx
 \left[
 \frac{-2}{(\theta_{i+1} - \theta_{i-1})}
 \left(
@@ -110,15 +241,15 @@ To discretize \eqref{eq:prob2_ode} using the unequally-spaced grid points given 
 \right] y_i
 \!\!\!\!
 &+\left[
-\frac{2}{(\theta_{i+1} - \theta_{i-1})(\theta_{i+1} - \theta_{i})}
-\right] y_{i+1}
-\\
-&&+\left[
 \frac{2}{(\theta_{i+1} - \theta_{i-1})(\theta_i - \theta_{i-1})}
 \right] y_{i-1}
 \\
+&&+\left[
+\frac{2}{(\theta_{i+1} - \theta_{i-1})(\theta_{i+1} - \theta_{i})}
+\right] y_{i+1}
+\\
 &=
-[D_i] \: y_i + [B_i] \: y_{i+1} + [C_i] \: y_{i-1}
+[A_i] \: y_i + [B_i] \: y_{i-1} + [C_i] \: y_{i+1}
 \;,
 \end{aligned}
 \end{equation}
@@ -126,12 +257,12 @@ to rewrite the governing equation as
 \begin{equation}
 y'' + \frac{y}{4} = 0
 \quad \rightarrow \quad
-[B_i] \: y_{i+1} + [\tfrac{1}{4} + D_i] \: y_i + [C_i] \: y_{i-1} = 0
+[B_i] \: y_{i-1} + [\tfrac{1}{4} + A_i] \: y_i + [C_i] \: y_{i+1} = 0
 \;.
 \end{equation}
-Formation of the matrix equation proceeds in the standard manner for second-order central differences, resulting in a tridiagonal matrix equation $\mb{A} \mb{x} = \mb{f}$.
+Formation of the matrix equation proceeds in the standard manner used in Problem 1, resulting in a tridiagonal matrix equation $\mb{A} \mb{x} = \mb{f}$.
 
-To solve our system for $\mb{x}$, we employ LU decomposition. The aim is to perform the decomposition $\mb{A} = \mb{L} \mb{U}$, where $\mb{L}$ is lower-triangular, and $\mb{U}$ is upper-triangular. Consider the tridiagonal matrix decomposition $\mb{A} = \mb{L} \mb{U}$ in more detail,
+To solve our system for $\mb{x}$, we employ LU decomposition. The goal is to perform the decomposition $\mb{A} = \mb{L} \mb{U}$, where $\mb{L}$ is lower-triangular, and $\mb{U}$ is upper-triangular. Consider the tridiagonal matrix decomposition $\mb{A} = \mb{L} \mb{U}$ in more detail,
 \begin{equation}
 \begin{bmatrix}
 a_1 & c_1 &        &         & \\
@@ -167,17 +298,16 @@ l_i     &= a_i - b_{i-1} u_{i-1}
 i = 2, \dots, N
 \;.
 \end{align}
-
-Back-substitution is used to find the solution vector $\mb{x}$. First, the system $\mb{L} \mb{z} = \mb{f}$ is solved using
+Next, back-substitution is used to find the solution vector $\mb{x}$. First, the system $\mb{L} \mb{z} = \mb{f}$ is solved using
 \begin{align}
 z_1 &= f_1 \; / \; l_1 \notag \\
 z_i &= (f_i - b_{i-1} z_{i-1}) \; / \; l_i
 \;,
 \qquad
 i = 2, \dots, N
-\;.
+\;,
 \end{align}
-Then we solve the system $\mb{U} \mb{x} = \mb{z}$ for $\mb{x}$ with
+and then we solve the system $\mb{U} \mb{x} = \mb{z}$ for $\mb{x}$ with
 \begin{align}
 x_N &= z_N \notag \\
 x_i &= z_i - u_i x_{i+1}
@@ -203,7 +333,40 @@ y(\theta) = \frac{2}{\sin(1)} \sin \left( \frac{\theta + 1}{2} \right)
 
 \subsection{Problem 1}
 
-Analytical and central difference solutions to \eqref{eq:prob2_ode} are presented in \figref{fig:Prob2}. The global relative error, essentially summing over all points in the relative error plot below, is $1.61 \times 10^{-3}$.
+Plots comparing the central difference and shooting method results for $F$, $F'$, and $\theta$ are presented in \figref{fig:Prob1}. Note that the shooting method used for Homework 3 was coupled to a fourth-order Runge-Kutta integration scheme, so the governing equations are satisfied to higher-order accuracy than the second-order central difference scheme employed here.
+
+Table \ref{tbl:Prob1} shows the differences in $F''$ and $\theta'$ boundary conditions at $\eta = 0$ for different Prandtl numbers and methods. Note the listed values for Homework 3 are hard-coded into its solver, whereas those for Homework 4 are found iteratively.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+BC & Pr & Homework 3 & Homework 4 \\
+\midrule
+    $F''(0)$ &  1 &  0.6000 &  0.6425 \\
+    $F''(0)$ & 10 &  0.4100 &  0.4206 \\
+$\theta'(0)$ &  1 & -0.5671 & -0.5644 \\
+$\theta'(0)$ & 10 & -1.1700 & -1.1582 \\
+\bottomrule
+\end{tabular}
+\\[6pt]
+\caption{Comparison of the boundary conditions $F''(0)$ and $\theta'(0)$ between Prandtl numbers and the methods employed in Homework 3 and Homework 4.}
+\label{tbl:Prob1}
+\end{table}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=\textwidth]{Prob1_F.eps}
+\includegraphics[width=\textwidth]{Prob1_Fprime.eps}
+\includegraphics[width=\textwidth]{Prob1_theta.eps}
+\caption{$F$, $F'$, and $\theta$ as functions of $\eta$ for Prandtl numbers $\text{Pr} = \{1, 10\}$. The second-order central difference (2CD) solutions are compared to the results of Homework 3 (HW3) using the fourth-order Runge-Kutta method.}
+\label{fig:Prob1}
+\end{center}
+\end{figure}
+
+\subsection{Problem 2}
+
+Analytical and central difference solutions to \eqref{eq:prob2_ode} are presented in \figref{fig:Prob2}. The global relative error, essentially summing over all points in the relative error plot, is $1.61 \times 10^{-3}$.
 
 \begin{figure}[h!]
 \begin{center}
@@ -215,41 +378,6 @@ Analytical and central difference solutions to \eqref{eq:prob2_ode} are presente
 \end{center}
 \end{figure}
 
-\subsection{Problem 2}
-
-Plots comparing the central difference and shooting method results for $F$, $F'$, and $\theta$ are presented in \figref{fig:Prob1}. Note that the shooting method used for Homework 3 was coupled to a fourth-order Runge-Kutta integration scheme, so the governing equations are satisfied to higher-order accuracy than the second-order central difference scheme employed here.
-
-Table \ref{tbl:Prob1} shows the differences in $F''$ and $\theta'$ boundary conditions at $\eta = 0$ for different Prandtl numbers and 
-
-\begin{table}[h!]
-\centering
-\begin{tabular}{lrrr}
-\toprule
-BC & Pr & Homework 3 & Homework 4 \\
-\midrule
-    $F''(0)$ &  1 &  0.6000 &  0.6524 \\
-    $F''(0)$ & 10 &  0.4100 &  0.4304 \\
-$\theta'(0)$ &  1 & -0.5671 & -0.5644 \\
-$\theta'(0)$ & 10 & -1.1700 & -1.1582 \\
-\bottomrule
-\end{tabular}
-\\[6pt]
-\caption{Comparison of the boundary conditions $F''(0)$ and $\theta'(0)$ between Prandtl numbers and the methods employed in Homework 3 (fourth-order Runge-Kutta shooting method) and Homework 4 (second-order central differences and the Euler method).}
-\label{tbl:Prob1}
-\end{table}
-
-
-\begin{figure}[h!]
-\begin{center}
-\includegraphics[width=\textwidth]{Prob1_F.eps}
-\includegraphics[width=\textwidth]{Prob1_Fprime.eps}
-\includegraphics[width=\textwidth]{Prob1_theta.eps}
-\\[-0.5cm]
-\caption{$F$, $F'$, and $\theta$ as functions of $\eta$ for Prandtl numbers $\text{Pr} = \{1, 10\}$. The second-order accuracy central difference (2CD) solutions are compared to the results of Homework 3 (HW3).}
-\label{fig:Prob1}
-\end{center}
-\end{figure}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion} %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -258,9 +386,15 @@ $\theta'(0)$ & 10 & -1.1700 & -1.1582 \\
 
 \subsection{Problem 1}
 
+Visually, the solutions for $F$, $F'$, and $\theta$ obtained using our second-order central difference method are identical to those from Homework 3, for both Prandtl numbers considered. Differences in $F''(0)$ and $\theta'(0)$ from Table \ref{tbl:Prob1} are more pronounced, however, with disagreement as high as 7\% in the case of $F''(0)$ for $\text{Pr} = 1$. This could be due to any number of reasons.
+
+First, our current solution uses a combination of second-order central differences and the first-order Euler method. Though the functions we consider have relatively low curvature, the fourth-order Runge-Kutta method used in Homework 3 will undoubtedly do a better job of capturing solution behavior. I am inclined to believe that the solution method in Homework 3 is more `trustworthy' for this reason. However, we were given $F''(0)$ and $\theta'(0)$ as initial conditions in Homework 3, which means that any departure from their true values---however small---could not be corrected for.
+
+The more `correct' way to do this problem is clearly the current approach, wherein coupled central difference equations are solved iteratively, and no boundary conditions other than those with a physical basis are required. To obtain a more accurate solution, we would simply use central difference and integration methods of higher-order accuracy.
+
 \subsection{Problem 2}
 
-Results for the non-uniform grid solution match the exact analytical solution very well, as evinced by the low global and point-wise relative error. LU decomposition proves to be an effective method for solution of the matrix equation, but its superior efficiency is unable to be demonstrated in this problem, due to the fact that we are solving our matrix system once for a single RHS vector.
+Results for the non-uniform grid solution match the exact analytical solution very well, as demonstrated by the low global and point-wise relative error. LU decomposition proves to be an effective method for solution of the matrix equation, but we are unable to take advantage of its superior efficiency in this problem, due to the fact that we are solving our matrix system once for a single RHS vector.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -276,7 +410,7 @@ No external references were used other than the course notes for this assignment
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The following code listings generate all figures presented in this homework assignment. Though \lstinline|Problem_1| calls a modified version of Homework 3's code through the function \lstinline|Problem_1_Shooting|, the latter function will not be listed here in the interest of brevity.
+The following code listings generate all figures presented in this homework assignment. However, though \lstinline|Problem_1| calls a modified version of Homework 3's code through the function \lstinline|Problem_1_Shooting|, the latter function will not be listed here in the interest of brevity.
 
 \includecode{Problem_1.m}
 \includecode{Assemble_g.m}
